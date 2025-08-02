@@ -1,7 +1,5 @@
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class LoginApp {
@@ -9,7 +7,7 @@ public class LoginApp {
         Scanner input = new Scanner(System.in);
         while (true) {
             System.out.println("\n--- Login System ---\n");
-            System.out.print("1-Register\n2-Login\n3-Exit ");
+            System.out.print("1-Register\n2-Login\n3-Exit\n4-Delete a user\n ");
             System.out.println("Enter your choice: ");
             int choice = input.nextInt();
             input.nextLine();
@@ -19,6 +17,10 @@ public class LoginApp {
                 String username = input.nextLine();
                 System.out.println("Enter a password: ");
                 String password = input.nextLine();
+                if(password.length() < 6|| !password.matches(".*[a-zA-Z].*") || !password.matches(".*\\d.*")) {
+                    System.out.println("Password must be at lesast 6 characters and long and contain at least one letter and one number.");
+                    continue;
+                }
                 boolean userExists=false;
                 try (Scanner fileScanner = new Scanner(new java.io.File("users.txt"))) {
                     while (fileScanner.hasNextLine()) {
@@ -73,7 +75,47 @@ public class LoginApp {
             }else if (choice == 3) {
                 System.out.println("Exiting...");
                 break;
-            }else {
+            }else if (choice == 4) {
+                System.out.println("Enter the username to delete: ");
+                String usernameToDelete = input.nextLine();
+                boolean userFound=false;
+                ArrayList<String> updatedUsers = new ArrayList<>();
+                try {
+                    BufferedReader reader = new BufferedReader(new FileReader("users.txt"));
+                    String line;
+                    while ((line= reader.readLine()) != null){
+                        String[] parts = line.split(",");
+                        if(parts.length >= 1 && parts[0].trim().equalsIgnoreCase(usernameToDelete.trim())) {
+                            userFound = true;
+                            continue;
+                        }
+                        updatedUsers.add(line);
+                    }
+                    reader.close();
+
+                }catch (IOException e) {
+                    System.out.println("Could not read user file: " + e.getMessage());
+                    return;
+                }
+                if(userFound) {
+                    try {
+                        FileWriter writer=new FileWriter("users.txt",false);
+                        for (String user : updatedUsers) {
+                            writer.write(user+"\n");
+                        }
+                        writer.close();
+                        System.out.println("User successfully deleted!");
+                    }catch (IOException e) {
+                        System.out.println("Error writing to users file:  " + e.getMessage());
+                    }
+                }else{
+                    System.out.println("User not found!");
+                }
+            }
+
+
+
+            else {
                 System.out.println("Invalid choice. Please try again.");
             }
         }
